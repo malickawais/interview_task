@@ -1,71 +1,107 @@
-import { useState } from "react";
-import "./App.css";
+import { useState, useEffect } from "react";
 import { debounce } from "lodash";
+import "./App.css";
+
 function App() {
   const [isFirstBox, setIsFirstBox] = useState(false);
   const [isSecondBox, setIsSecondBox] = useState(false);
   const [isThirdBox, setIsThirdBox] = useState(false);
   const [isFourthBox, setIsFourthBox] = useState(false);
 
+  const [clickOrder, setClickOrder] = useState<number[]>([]);
+  const [lastClickTime, setLastClickTime] = useState(Date.now());
+  const [hasPlayedReverse, setHasPlayedReverse] = useState(false);
+
   const onClickHandler = () => {
-    setIsFirstBox(!isFirstBox);
-    setTimeout(() => {
-      setIsFirstBox(false);
-    }, 2000);
+    setIsFirstBox(true);
+    setTimeout(() => setIsFirstBox(false), 2000);
+
+    setClickOrder((prevOrder) => [...prevOrder, 1]);
+    setLastClickTime(Date.now());
+    setHasPlayedReverse(false);
   };
-  const debouncedClick1 = debounce(onClickHandler, 5000);
 
   const onClickHandlerBox2 = () => {
-    setIsSecondBox(!isSecondBox);
-    setTimeout(() => {
-      setIsSecondBox(false);
-    }, 2000);
+    setIsSecondBox(true);
+    setTimeout(() => setIsSecondBox(false), 2000);
+
+    setClickOrder((prevOrder) => [...prevOrder, 2]);
+    setLastClickTime(Date.now());
+    setHasPlayedReverse(false);
   };
-  const debouncedClick2 = debounce(onClickHandlerBox2, 5000);
 
   const onClickHandlerBox3 = () => {
-    setIsThirdBox(!isThirdBox);
-    setTimeout(() => {
-      setIsThirdBox(false);
-    }, 2000);
+    setIsThirdBox(true);
+    setTimeout(() => setIsThirdBox(false), 2000);
+
+    setClickOrder((prevOrder) => [...prevOrder, 3]);
+    setLastClickTime(Date.now());
+    setHasPlayedReverse(false);
   };
-  const debouncedClick3 = debounce(onClickHandlerBox3, 5000);
 
   const onClickHandlerBox4 = () => {
-    setIsFourthBox(!isFourthBox);
-    setTimeout(() => {
-      setIsFourthBox(false);
-    }, 2000);
+    setIsFourthBox(true);
+    setTimeout(() => setIsFourthBox(false), 2000);
+
+    setClickOrder((prevOrder) => [...prevOrder, 4]);
+    setLastClickTime(Date.now());
+    setHasPlayedReverse(false);
   };
-  const debouncedClick4 = debounce(onClickHandlerBox4, 5000);
+
+  const handleInactivity = debounce(() => {
+    if (!hasPlayedReverse && clickOrder.length > 0) {
+      const reversed = [...clickOrder].reverse();
+      reversed.forEach((box, idx) => {
+        setTimeout(() => {
+          if (box === 1) {
+            setIsFirstBox(true);
+            setTimeout(() => setIsFirstBox(false), 2000);
+          } else if (box === 2) {
+            setIsSecondBox(true);
+            setTimeout(() => setIsSecondBox(false), 2000);
+          } else if (box === 3) {
+            setIsThirdBox(true);
+            setTimeout(() => setIsThirdBox(false), 2000);
+          } else if (box === 4) {
+            setIsFourthBox(true);
+            setTimeout(() => setIsFourthBox(false), 2000);
+          }
+        }, idx * 2000);
+      });
+
+      setHasPlayedReverse(true);
+      setClickOrder([]);
+    }
+  }, 5000);
+
+  useEffect(() => {
+    handleInactivity();
+    return () => handleInactivity.cancel();
+  }, [clickOrder, handleInactivity]);
 
   return (
     <div className="app_mainbox">
       <button
         className={"app_subbox " + (isFirstBox ? "expandin" : "")}
         onClick={() => {
-          debouncedClick1();
           onClickHandler();
         }}
       ></button>
       <button
         className={"app_subbox " + (isSecondBox ? "expandin" : "")}
         onClick={() => {
-          debouncedClick2();
           onClickHandlerBox2();
         }}
-      ></button>{" "}
+      ></button>
       <button
         className={"app_subbox " + (isThirdBox ? "expandin" : "")}
         onClick={() => {
-          debouncedClick3();
           onClickHandlerBox3();
         }}
-      ></button>{" "}
+      ></button>
       <button
         className={"app_subbox " + (isFourthBox ? "expandin" : "")}
         onClick={() => {
-          debouncedClick4();
           onClickHandlerBox4();
         }}
       ></button>
